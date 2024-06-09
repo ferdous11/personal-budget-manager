@@ -9,13 +9,14 @@ import InputError from "@/Components/InputError.vue";
 
 const form = useForm({
     amount: '',
-    period: 'monthly',
+    date: '',
     category_id: '',
+    description: '',
 
 });
 
 const submit = () => {
-    form.post(route('budgets.store'), {
+    form.post(route('transactions.store'), {
         onFinish: () => form.reset('amount'),
     });
 };
@@ -24,18 +25,18 @@ const submit = () => {
 </script>
 
 <template>
-    <Head title="Add Budget"/>
+    <Head title="Add Transaction"/>
 
     <AuthenticatedLayout>
         <template #header>
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">Add Budget</h2>
+            <h2 class="font-semibold text-xl text-gray-800 leading-tight">Add Transaction</h2>
         </template>
 
         <div class="py-12">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-6 text-gray-900">
-                        <h2>Add Budget</h2>
+                        <h2>Add Transaction</h2>
 
 <!--                        {{ form }}-->
 
@@ -69,25 +70,41 @@ const submit = () => {
                                 <InputError class="mt-2" :message="form.errors.category_id"/>
                             </div>
 
-                          
-                            <div  class="mt-4">
-                                <label for="period" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-                                    Select Period
-                                </label>
-                                <select id="period" v-model="form.period"
-                                        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
-                                    <option value="monthly">Monthly</option>
-                                    <option value="yearly">Yearly</option>
-                                </select>
+                            <div class="mt-4">
+                                <InputLabel for="date" value="Date"/>
+                                <TextInput
+                                    id="date"
+                                    type="date"
+                                    class="mt-1 block w-full"
+                                    v-model="form.date"
+                                    required
+                                    autofocus
+                                    autocomplete="<?=date('Y-m-d');?>"
+                                />
 
-                                <InputError class="mt-2" :message="form.errors.period"/>
+                                <InputError class="mt-2" :message="form.errors.date"/>
+                            </div>
+                        
+                            <div class="mt-4">
+                                <InputLabel for="description" value="Description"/>
+                                <TextInput
+                                    id="description"
+                                    type="text"
+                                    class="mt-1 block w-full"
+                                    v-model="form.description"
+                                    required
+                                    autofocus
+                                    autocomplete="description"
+                                />
+
+                                <InputError class="mt-2" :message="form.errors.description"/>
                             </div>
 
                             <div class="flex items-center justify-end mt-4">
                                 <PrimaryButton class="ms-4"
                                                :class="{ 'opacity-25': form.processing }"
                                                :disabled="form.processing">
-                                    Add Budget
+                                    Add Transaction
                                 </PrimaryButton>
                             </div>
                         </form>

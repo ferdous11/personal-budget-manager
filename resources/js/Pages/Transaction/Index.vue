@@ -3,14 +3,14 @@ import DangerButton from '@/Components/DangerButton.vue';
 import {Head, usePage, Link, useForm} from "@inertiajs/vue3";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 
-const budgets = usePage().props.budgets;
+const transactions = usePage().props.transactions;
 const form = useForm({
     id: '',
 });
-const deleteBudget = (id) => {
-    if(confirm('Are you sure you want to delete this budget?')) {
+const deleteTransaction = (id) => {
+    if(confirm('Are you sure you want to delete this transaction?')) {
         // console.log(id);
-        form.delete(route('budgets.destroy', {id: id}), {
+        form.delete(route('transactions.destroy', {id: id}), {
         });
     }
 };
@@ -19,26 +19,26 @@ const deleteBudget = (id) => {
 </script>
 
 <template>
-    <Head title="Budget List" />
+    <Head title="Transaction List" />
 
     <AuthenticatedLayout>
         <template #header>
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">Budget</h2>
+            <h2 class="font-semibold text-xl text-gray-800 leading-tight">Transaction</h2>
         </template>
 
         <div class="py-12">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-6 text-gray-900">
-                        <h2>Budget List</h2>
+                        <h2>Transaction List</h2>
 
 
                         <div class="relative overflow-x-auto">
-                            <Link :href="route('budgets.create')"
+                            <Link :href="route('transactions.create')"
                                   class="text-black bg-blue-700 hover:bg-blue-800 focus:ring-4
                             focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-blue-600
                             dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">
-                                Add Budget
+                                Add Transaction
                             </Link>
                             <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
                                 <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
@@ -50,10 +50,13 @@ const deleteBudget = (id) => {
                                         Category Id
                                     </th>
                                     <th scope="col" class="px-6 py-3">
+                                        Date
+                                    </th>
+                                    <th scope="col" class="px-6 py-3">
                                         Amount
                                     </th>
                                     <th scope="col" class="px-6 py-3">
-                                        Period
+                                        Description
                                     </th>
                                     <th scope="col" class="px-6 py-3">
                                         Action
@@ -61,27 +64,30 @@ const deleteBudget = (id) => {
                                 </tr>
                                 </thead>
                                 <tbody>
-                                <tr v-for="(budget, index) in budgets" :key="index"
+                                <tr v-for="(transaction, index) in transactions" :key="index"
                                     class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
                                     <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
                                         {{ index+1 }}
                                     </th>
                                     <td class="px-6 py-4">
-                                        {{ budget.category_id }}
+                                        {{ transaction.category_id }}
                                     </td>
                                     <td class="px-6 py-4">
-                                        {{ budget.amount }}
+                                        {{ transaction.date }}
                                     </td>
                                     <td class="px-6 py-4">
-                                        {{ budget.period  }}
+                                        {{ transaction.amount }}
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        {{ transaction.description }}
                                     </td>
                                    
                                     <td class="px-6 py-4">
-                                        <Link :href="route('budgets.edit', {budget: budget.id})">
+                                        <Link :href="route('transactions.edit', {transaction: transaction.id})">
                                             Edit
                                         </Link>
                                         |
-                                        <button type="button" @click="deleteBudget(budget.id)">
+                                        <button type="button" @click="deleteTransaction(transaction.id)">
                                             Delete
                                         </button>
                                     </td>

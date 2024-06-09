@@ -54,10 +54,7 @@ class CategoryController extends Controller
      */
     public function edit(string $id)
     {
-        $category = Category::select(['id', 'name', 'type'])
-            ->where('id', $id)
-            ->where('user_id', auth()->user()->id)
-            ->first();
+        $category = $this->getCategoryById($id);
         return Inertia::render('Category/Edit', ['category' => $category]);
     }
 
@@ -66,10 +63,7 @@ class CategoryController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        $category = Category::select(['id', 'name', 'type'])
-            ->where('id', $id)
-            ->where('user_id', auth()->user()->id)
-            ->first();
+        $category = $this->getCategoryById($id);
         $category->name = $request->input('name');
         $category->type = $request->input('type');
         $category->save();
@@ -87,7 +81,7 @@ class CategoryController extends Controller
         return Inertia::location(route('categories.index'));
     }
     
-    private function getCategoryById(int $id): array
+    private function getCategoryById(int $id): Category | null
     {
         return Category::select(['id', 'name', 'type'])
             ->where('id', $id)
