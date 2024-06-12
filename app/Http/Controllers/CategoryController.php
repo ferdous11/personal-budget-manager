@@ -4,89 +4,82 @@ namespace App\Http\Controllers;
 
 use App\Models\Category;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rules\In;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 class CategoryController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function index(): \Inertia\Response
     {
         return Inertia::render('Category/Index', [
-            'categories' => Category::select(['id', 'name', 'type'])->where('user_id', auth()->user()->id)->get()
+            'page_title' => 'Categories',
+            'categories' => Auth::user()->categories,
+
         ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        return Inertia::render('Category/Create', []);
-    }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function create(): \Inertia\Response
     {
-//        return [$request->input('name'), $request->input('type')];
-        Category::create([
-            'name' => $request->input('name'),
-            'type' => $request->input('type'),
-            'user_id' => auth()->user()->id,
+        return Inertia::render('Category/Create', [
+            'page_title' => 'Add Category',
         ]);
-        return redirect()->route('categories.index');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    public function store(Request $request): \Illuminate\Http\RedirectResponse
     {
-        //
+        $this->validate($request, [
+            'name' => 'required|string|max:255',
+            'type' => 'required|in:income,expense',
+        ]);
+        $request->user()->categories()->create([
+            'name' => $request->name,
+            'type' => $request->type,
+        ]);
+        return redirect()->route('categories.index')->with('message', [
+                'body' => 'Category created successfully.',
+                'type' => 'success'
+            ]
+        );
+
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
+
+    public function show(string $id): \Inertia\Response
     {
-        $category = $this->getCategoryById($id);
-        return Inertia::render('Category/Edit', ['category' => $category]);
+        return Inertia::render('Category/Show', [
+            'page_title' => 'Category Details',
+            'category' => Category::where(['id' => $id, 'user_id' => auth()->user()->id])->first()
+        ]);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
+
+    public function edit(string $id): \Inertia\Response
     {
-        $category = $this->getCategoryById($id);
+        return Inertia::render('Category/Edit', [
+            'page_title' => 'Edit Category',
+            'category' => Category::where(['id' => $id, 'user_id' => auth()->user()->id])->first()
+        ]);
+    }
+
+
+    public function update(Request $request, string $id): \Illuminate\Http\RedirectResponse
+    {
+        $this->validate($request, [
+            'name' => 'required|string|max:255',
+            'type' => 'required|in:income,expense',
+        ]);
+        $category = Category::where(['id' => $id, 'user_id' => auth()->user()->id])->first();
         $category->name = $request->input('name');
         $category->type = $request->input('type');
         $category->save();
-
         return redirect()->route('categories.index');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
+    public function destroy(string $id): \Symfony\Component\HttpFoundation\Response
     {
         $category = Category::find($id);
         $category->delete();
         return Inertia::location(route('categories.index'));
     }
-    
-    private function getCategoryById(int $id): Category | null
-    {
-        return Category::select(['id', 'name', 'type'])
-            ->where('id', $id)
-            ->where('user_id', auth()->user()->id)
-            ->first();
-    }
-
 }

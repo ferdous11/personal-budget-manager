@@ -21,9 +21,9 @@ const showingNavigationDropdown = ref(false);
                             <!-- Logo -->
                             <div class="shrink-0 flex items-center">
                                 <Link :href="route('dashboard')">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349M3.75 21V9.349m0 0a3.001 3.001 0 0 0 3.75-.615A2.993 2.993 0 0 0 9.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 0 0 2.25 1.016c.896 0 1.7-.393 2.25-1.015a3.001 3.001 0 0 0 3.75.614m-16.5 0a3.004 3.004 0 0 1-.621-4.72l1.189-1.19A1.5 1.5 0 0 1 5.378 3h13.243a1.5 1.5 0 0 1 1.06.44l1.19 1.189a3 3 0 0 1-.621 4.72M6.75 18h3.75a.75.75 0 0 0 .75-.75V13.5a.75.75 0 0 0-.75-.75H6.75a.75.75 0 0 0-.75.75v3.75c0 .414.336.75.75.75Z" />
-                                    </svg>
+                                    <ApplicationLogo
+                                        class="block h-9 w-auto fill-current text-gray-800"
+                                    />
                                 </Link>
                             </div>
 
@@ -32,17 +32,14 @@ const showingNavigationDropdown = ref(false);
                                 <NavLink :href="route('dashboard')" :active="route().current('dashboard')">
                                     Dashboard
                                 </NavLink>
-
                                 <NavLink :href="route('categories.index')" :active="route().current('categories.*')">
                                     Category
                                 </NavLink>
-
-                                <NavLink :href="route('budgets.index')" :active="route().current('budgets.*')">
-                                    Budget
-                                </NavLink>
-
                                 <NavLink :href="route('transactions.index')" :active="route().current('transactions.*')">
                                     Transaction
+                                </NavLink>
+                                <NavLink :href="route('budgets.index')" :active="route().current('budgets.*')">
+                                    Budget
                                 </NavLink>
                             </div>
                         </div>
@@ -126,6 +123,15 @@ const showingNavigationDropdown = ref(false);
                     <div class="pt-2 pb-3 space-y-1">
                         <ResponsiveNavLink :href="route('dashboard')" :active="route().current('dashboard')">
                             Dashboard
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink :href="route('categories.index')" :active="route().current('categories.*')">
+                            Category
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink :href="route('transactions.index')" :active="route().current('transactions.*')">
+                            Transaction
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink :href="route('budgets.index')" :active="route().current('budgets..*')">
+                            Budget
                         </ResponsiveNavLink>
                     </div>
 

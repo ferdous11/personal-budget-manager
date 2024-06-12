@@ -6,7 +6,10 @@ import { createInertiaApp } from '@inertiajs/vue3';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { ZiggyVue } from '../../vendor/tightenco/ziggy';
 
-const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
+// Import the CSS or use your own!
+
+
+const appName = import.meta.env.VITE_APP_NAME || 'PBM-Personam Bedget Management';
 
 createInertiaApp({
     title: (title) => `${title} - ${appName}`,

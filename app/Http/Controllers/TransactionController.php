@@ -1,92 +1,129 @@
 <?php
 
 namespace App\Http\Controllers;
-use Inertia\Inertia;
-use Illuminate\Http\Request;
+
+use App\Models\Category;
 use App\Models\Transaction;
+use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Inertia\Inertia;
 
 class TransactionController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function index() //: \Inertia\Response
     {
+
+
         return Inertia::render('Transaction/Index', [
-            'transactions' => Transaction::select(['id', 'category_id', 'date', 'amount', 'description'])->where('user_id', auth()->user()->id)->get()
+            'page_title' => 'Transactions',
+            'transactions' => Transaction::with('category')->where('user_id', Auth::id())->get(),
+            'total_progress' => $this->totalProgress(),
+            'current_progress' => $this->currentProgress(),
         ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    private function totalProgress(): int
     {
-        return Inertia::render('Transaction/Create', []);
+        $total = Transaction::where('user_id', auth()->id())
+            ->with('category')
+            ->get()
+            ->groupBy('category.type')
+            ->map(function ($group) {
+                return $group->sum('amount');
+            });
+        return round(($total['expense'] * 100)/ $total['income'], 0);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    private function currentProgress(): int
     {
-        Transaction::create([
-            'category_id' => $request->input('category_id'),
-            'amount' => $request->input('amount'),
-            'date' => $request->input('date'),
-            'description' => $request->input('description'),
-            'user_id' => auth()->user()->id,
+        $currentMonth = Carbon::now()->format('Y-m');
+        $current_total = Transaction::with('category')
+            ->where('user_id', auth()->id())
+            ->where(DB::raw("DATE_FORMAT(transaction_date, '%Y-%m')"), $currentMonth)
+            ->get()
+            ->groupBy('category.type')
+            ->map(function ($group) {
+                return $group->sum('amount');
+            });
+        return round(($current_total['expense'] * 100)/ $current_total['income'], 0);
+    }
+
+
+    public function create(): \Inertia\Response
+    {
+        return Inertia::render('Transaction/Create', [
+            'page_title' => 'Add Transaction',
+            'categories' => Auth::user()->categories,
         ]);
-        return redirect()->route('transactions.index');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+
+    public function store(Request $request): \Illuminate\Http\RedirectResponse
     {
-        //
+        $this->validate($request, [
+            'description' => 'required|string',
+            'amount' => 'required|int|min:1000|max:5000000',
+            'transaction_date' => 'required|date',
+            'category_id' => 'required|int',
+        ]);
+        $request->user()->transactions()->create([
+            'description' => $request->description,
+            'amount' => $request->amount,
+            'transaction_date' => $request->transaction_date,
+            'category_id' => $request->category_id,
+        ]);
+        return redirect()->route('transactions.index')->with('message', [
+                'body' => 'Transaction created successfully.',
+                'type' => 'success'
+            ]
+        );
+
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
+
+    public function show(string $id): \Inertia\Response
     {
-        $transaction = $this->getTransactionById($id);
-        return Inertia::render('Transaction/Edit', ['transaction' => $transaction]);
+        return Inertia::render('Transaction/Show', [
+            'page_title' => 'Transaction Details',
+            'transaction' => Transaction::with('category')
+                ->where(['id' => $id, 'user_id' => auth()->user()->id])->first(),
+        ]);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
+
+    public function edit(string $id): \Inertia\Response
     {
-        $transaction = $this->getTransactionById($id);
-        $transaction->category_id = $request->input('category_id');
-        $transaction->amount = $request->input('amount');
-        $transaction->date = $request->input('date');
+        return Inertia::render('Transaction/Edit', [
+            'page_title' => 'Edit Transaction',
+            'transaction' => Transaction::where(['id' => $id, 'user_id' => auth()->user()->id])->first(),
+            'categories' => Auth::user()->categories,
+        ]);
+    }
+
+
+    public function update(Request $request, string $id): \Illuminate\Http\RedirectResponse
+    {
+        $this->validate($request, [
+            'description' => 'required|string',
+            'amount' => 'required|int|min:1000|max:5000000',
+            'transaction_date' => 'required|date',
+            'category_id' => 'required|int',
+        ]);
+        $transaction = Transaction::where(['id' => $id, 'user_id' => auth()->user()->id])->first();
         $transaction->description = $request->input('description');
+        $transaction->amount = $request->input('amount');
+        $transaction->transaction_date = $request->input('transaction_date');
+        $transaction->category_id = $request->input('category_id');
         $transaction->save();
-
         return redirect()->route('transactions.index');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
+    public function destroy(string $id): \Symfony\Component\HttpFoundation\Response
     {
         $transaction = Transaction::find($id);
         $transaction->delete();
         return Inertia::location(route('transactions.index'));
-    }
-
-    private function getTransactionById(int $id): Transaction | null
-    {
-        return Transaction::select(['id', 'category_id', 'date', 'amount', 'description'])
-            ->where('id', $id)
-            ->where('user_id', auth()->user()->id)
-            ->first();
     }
 }

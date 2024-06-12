@@ -4,88 +4,86 @@ namespace App\Http\Controllers;
 
 use App\Models\Budget;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 class BudgetController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function index(): \Inertia\Response
     {
         return Inertia::render('Budget/Index', [
-            'budgets' => Budget::select(['id', 'category_id', 'amount', 'period'])->where('user_id', auth()->user()->id)->get()
+            'page_title' => 'Budgets',
+            'budgets' => Auth::user()->budgets,
         ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        return Inertia::render('Budget/Create', []);
-    }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function create(): \Inertia\Response
     {
-        Budget::create([
-            'category_id' => $request->input('category_id'),
-            'amount' => $request->input('amount'),
-            'period' => $request->input('period'),
-            'user_id' => auth()->user()->id,
+        return Inertia::render('Budget/Create', [
+            'page_title' => 'Add Budget',
         ]);
-        return redirect()->route('budgets.index');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    public function store(Request $request): \Illuminate\Http\RedirectResponse
     {
-        
+        $this->validate($request, [
+            'amount' => 'required|int|min:1000|max:5000000',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date',
+        ]);
+        $request->user()->budgets()->create([
+            'amount' => $request->amount,
+            'start_date' => $request->start_date,
+            'end_date' => $request->end_date,
+        ]);
+        return redirect()->route('budgets.index')->with('message', [
+                'body' => 'Budget created successfully.',
+                'type' => 'success'
+            ]
+        );
+
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
+
+    public function show(string $id): \Inertia\Response
     {
-        $budget = $this->getBudgetById($id);
-        return Inertia::render('Budget/Edit', ['budget' => $budget]);
+        return Inertia::render('Budget/Show', [
+            'page_title' => 'Budget Details',
+            'budget' => Budget::where(['id' => $id, 'user_id' => auth()->user()->id])->first()
+        ]);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
+
+    public function edit(string $id): \Inertia\Response
     {
-        $budget = $this->getBudgetById($id);
-        $budget->category_id = $request->input('category_id');
+        return Inertia::render('Budget/Edit', [
+            'page_title' => 'Edit Budget',
+            'budget' => Budget::where(['id' => $id, 'user_id' => auth()->user()->id])->first()
+        ]);
+    }
+
+
+    public function update(Request $request, string $id): \Illuminate\Http\RedirectResponse
+    {
+        $this->validate($request, [
+            'amount' => 'required|int|min:1000|max:5000000',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date',
+        ]);
+        $budget = Budget::where(['id' => $id, 'user_id' => auth()->user()->id])->first();
         $budget->amount = $request->input('amount');
-        $budget->period = $request->input('period');
+        $budget->start_date = $request->input('start_date');
+        $budget->end_date = $request->input('end_date');
         $budget->save();
-
         return redirect()->route('budgets.index');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
+    public function destroy(string $id): \Symfony\Component\HttpFoundation\Response
     {
         $budget = Budget::find($id);
         $budget->delete();
         return Inertia::location(route('budgets.index'));
     }
-
-    private function getBudgetById(int $id): Budget | null
-    {
-        return Budget::select(['id', 'category_id', 'amount', 'period'])
-            ->where('id', $id)
-            ->where('user_id', auth()->user()->id)
-            ->first();
-    }
 }
+
